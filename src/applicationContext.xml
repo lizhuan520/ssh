@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+	http://www.springframework.org/schema/aop
+	http://www.springframework.org/schema/aop/spring-aop-3.1.xsd
+	http://www.springframework.org/schema/tx
+	http://www.springframework.org/schema/tx/spring-tx-3.1.xsd">
+
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+		<property name="configLocation"
+			value="classpath:hibernate.cfg.xml">
+		</property>
+	</bean>
+	
+	<bean id="employeeDao" class="dao.daoimp.SysEmployeeImp"
+		p:sessionFactory-ref="sessionFactory">
+	</bean>
+	<bean id="claicmVoucherDao" class="dao.daoimp.ClaicmVoucherDaoImp"
+		p:sessionFactory-ref="sessionFactory">
+	</bean>
+	
+	<bean id="employeeBiz" class="biz.bizimp.EmployeeBizImp"
+		p:employeeDao-ref="employeeDao">
+	</bean>
+	<bean id="claicmVoucherBiz" class="biz.bizimp.ClaicmVoucherBizImp"
+		p:claicmVoucherDao-ref="claicmVoucherDao">
+	</bean>
+	<!-- 事务管理 -->
+	<bean id="transactionManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager"
+	p:sessionFactory-ref="sessionFactory"></bean>
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<!-- read-only="true 只读 -->
+			<tx:method name="find*" read-only="true"/>
+			<tx:method name="get*"/>
+			<tx:method name="save*"/>
+			<tx:method name="add*"/>
+			<tx:method name="delete*"/>
+			<tx:method name="*"/>
+		</tx:attributes>
+	</tx:advice>
+	<aop:config>
+		<aop:pointcut expression="execution(public * biz..*(..))" id="serviceMethod"></aop:pointcut>
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="serviceMethod"/>
+	</aop:config>
+	
+	</beans>
